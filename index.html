@@ -1,0 +1,1909 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sistem Absensi Guru & Karyawan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f8f0;
+            color: #2d5016;
+            line-height: 1.6;
+            box-sizing: border-box;
+            height: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(135deg, #2d5016 0%, #4a7c59 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            transform: translateX(-280px);
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar.open {
+            transform: translateX(0);
+        }
+        
+        .sidebar:hover {
+            transform: translateX(0);
+        }
+        
+        .sidebar-header {
+            padding: 25px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-header h1 {
+            font-size: 1.4em;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .sidebar-header h2 {
+            font-size: 0.9em;
+            opacity: 0.8;
+            font-weight: 400;
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #4a7c59, #2d5016);
+            border: none;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 124, 89, 0.3);
+            z-index: 1002;
+            backdrop-filter: blur(10px);
+        }
+        
+        .theme-toggle:hover {
+            background: linear-gradient(135deg, #2d5016, #1a3009);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 124, 89, 0.4);
+        }
+        
+        .dark-theme .theme-toggle {
+            background: linear-gradient(135deg, #555, #333);
+        }
+        
+        .dark-theme .theme-toggle:hover {
+            background: linear-gradient(135deg, #666, #444);
+        }
+        
+        /* Dark Theme Styles */
+        body.dark-theme {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+        }
+        
+        .dark-theme .sidebar {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        }
+        
+        .dark-theme .main-content {
+            background-color: #1a1a1a;
+        }
+        
+        .dark-theme .page-header {
+            background: #2d2d2d;
+            color: #e0e0e0;
+            border-left-color: #4a7c59;
+        }
+        
+        .dark-theme .page-header h2 {
+            color: #e0e0e0;
+        }
+        
+        .dark-theme .page-header p {
+            color: #b0b0b0;
+        }
+        
+        .dark-theme .card {
+            background: #2d2d2d;
+            border-color: #404040;
+            color: #e0e0e0;
+        }
+        
+        .dark-theme .card-title {
+            color: #e0e0e0;
+            border-bottom-color: #4a7c59;
+        }
+        
+        .dark-theme input, 
+        .dark-theme select, 
+        .dark-theme textarea {
+            background-color: #404040;
+            border-color: #555;
+            color: #e0e0e0;
+        }
+        
+        .dark-theme input:focus, 
+        .dark-theme select:focus, 
+        .dark-theme textarea:focus {
+            border-color: #4a7c59;
+            background-color: #4a4a4a;
+        }
+        
+        .dark-theme label {
+            color: #d0d0d0;
+        }
+        
+        .dark-theme table {
+            background: #2d2d2d;
+        }
+        
+        .dark-theme th {
+            background: linear-gradient(135deg, #2d5016, #1a1a1a);
+            color: #e0e0e0;
+        }
+        
+        .dark-theme td {
+            border-bottom-color: #404040;
+            color: #e0e0e0;
+        }
+        
+        .dark-theme tr:hover {
+            background-color: #3a3a3a;
+        }
+        
+        .dark-theme .summary-item {
+            background: #2d2d2d;
+            border-left-color: #4a7c59;
+        }
+        
+        .dark-theme .summary-number {
+            color: #e0e0e0;
+        }
+        
+        .dark-theme .summary-label {
+            color: #b0b0b0;
+        }
+        
+        .dark-theme .holiday-item {
+            background: #3a3a3a;
+            border-color: #555;
+        }
+        
+        .dark-theme .holiday-desc {
+            color: #b0b0b0;
+        }
+        
+        .dark-theme .no-data {
+            color: #b0b0b0;
+        }
+        
+        .dark-theme .work-hours {
+            background: #2d4a2d;
+            color: #90ee90;
+        }
+        
+        .dark-theme .alert-success {
+            background-color: #1e4d2b;
+            color: #90ee90;
+            border-color: #2d5a2d;
+        }
+        
+        .dark-theme .alert-danger {
+            background-color: #4d1e1e;
+            color: #ff9999;
+            border-color: #5a2d2d;
+        }
+        
+        .dark-theme .work-schedule {
+            background: linear-gradient(135deg, #2d5016 0%, #4a7c59 100%);
+        }
+        
+        .dark-theme .date-info {
+            background: linear-gradient(135deg, #2d5016 0%, #4a7c59 100%);
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .menu-item {
+            display: block;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.95em;
+            font-weight: 500;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255,255,255,0.1);
+            padding-left: 35px;
+        }
+        
+        .menu-item.active {
+            background: rgba(255,255,255,0.2);
+            border-right: 4px solid white;
+        }
+        
+        .menu-item i {
+            margin-right: 10px;
+            width: 20px;
+        }
+        
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #4a7c59, #2d5016);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8em;
+            font-weight: 600;
+            z-index: 1001;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 124, 89, 0.3);
+        }
+        
+        .sidebar-toggle:hover {
+            background: linear-gradient(135deg, #2d5016, #1a3009);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 124, 89, 0.4);
+        }
+        
+        .dark-theme .sidebar-toggle {
+            background: linear-gradient(135deg, #555, #333);
+        }
+        
+        .dark-theme .sidebar-toggle:hover {
+            background: linear-gradient(135deg, #666, #444);
+        }
+        
+        .main-content {
+            margin-left: 0;
+            flex: 1;
+            padding: 80px 20px 20px 20px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .page-header {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border-left: 5px solid #4a7c59;
+        }
+        
+        .page-header h2 {
+            color: #2d5016;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+        
+        .page-header p {
+            color: #5a7c5a;
+            font-size: 1em;
+        }
+        
+        .work-schedule {
+            background: linear-gradient(135deg, #4a7c59 0%, #2d5016 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e1e8ed;
+        }
+        
+        .card-title {
+            font-size: 1.4em;
+            color: #2d5016;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #4a7c59;
+            font-weight: 600;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d5016;
+            font-size: 0.95em;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background-color: #fff;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4a7c59;
+            box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.1);
+        }
+        
+        .time-input {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .time-input input {
+            flex: 1;
+        }
+        
+        .time-input button {
+            padding: 12px 15px;
+            background: #4a7c59;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+        
+        .time-input button:hover {
+            background: #2d5016;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 5px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4a7c59, #2d5016);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2d5016, #1a3009);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 124, 89, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #229954, #1e8449);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #c0392b, #a93226);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+        }
+        
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            font-size: 0.85em;
+        }
+        
+        th {
+            background: linear-gradient(135deg, #2d5016, #4a7c59);
+            color: white;
+            padding: 12px 6px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8em;
+        }
+        
+        td {
+            padding: 10px 6px;
+            border-bottom: 1px solid #ecf0f1;
+            vertical-align: middle;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.7em;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+            min-width: 70px;
+        }
+        
+        .status-hadir {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-terlambat {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-izin {
+            background-color: #cce7ff;
+            color: #004085;
+        }
+        
+        .status-sakit {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .status-tidak-hadir {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .keterlambatan-badge {
+            padding: 3px 6px;
+            border-radius: 12px;
+            font-size: 0.65em;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+            min-width: 60px;
+        }
+        
+        .tepat-waktu {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .toleransi {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .terlambat {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .time-display {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #2d5016;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .summary-item {
+            background: white;
+            padding: 18px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-left: 4px solid #4a7c59;
+        }
+        
+        .summary-number {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2d5016;
+            margin-bottom: 5px;
+        }
+        
+        .summary-label {
+            color: #5a7c5a;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        
+        .date-info {
+            background: linear-gradient(135deg, #4a7c59 0%, #2d5016 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .work-hours {
+            background: #e8f5e8;
+            padding: 8px;
+            border-radius: 5px;
+            font-size: 0.8em;
+            color: #2d5a2d;
+            font-weight: bold;
+        }
+        
+        .duration-display {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #e67e22;
+            font-size: 0.75em;
+        }
+        
+        .holiday-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .holiday-date {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        
+        .holiday-desc {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        
+        .percentage-badge {
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-align: center;
+            display: inline-block;
+            min-width: 60px;
+        }
+        
+        .percentage-high {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .percentage-medium {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .percentage-low {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+
+        
+        @media (max-width: 1024px) {
+            .form-row {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            table {
+                font-size: 0.75em;
+            }
+            
+            th, td {
+                padding: 6px 3px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 80px 10px 10px 10px;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            table {
+                font-size: 0.7em;
+            }
+            
+            th, td {
+                padding: 4px 2px;
+            }
+            
+            .time-input {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .theme-toggle {
+                bottom: 15px;
+                right: 15px;
+                padding: 10px 14px;
+                font-size: 0.8em;
+            }
+            
+            .sidebar-toggle {
+                top: 15px;
+                left: 15px;
+                padding: 6px 10px;
+                font-size: 0.75em;
+            }
+        }
+        
+        @media print {
+            .sidebar, .sidebar-toggle, .theme-toggle {
+                display: none;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            
+            .btn, .page-header {
+                display: none;
+            }
+            
+            body {
+                background: white;
+            }
+            
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Toggle -->
+        <button class="sidebar-toggle" onclick="toggleSidebar()" id="sidebarToggle">MENU</button>
+        
+        <!-- Theme Toggle -->
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle">
+            Tema Gelap
+        </button>
+        
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>SISTEM ABSENSI</h1>
+                <h2>MI RIYADLATUL UQUL</h2>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <button class="menu-item active" onclick="showSection('dashboard')">
+                    Dashboard
+                </button>
+                <button class="menu-item" onclick="showSection('input-absensi')">
+                    Input Absensi
+                </button>
+                <button class="menu-item" onclick="showSection('data-absensi')">
+                    Data Absensi
+                </button>
+                <button class="menu-item" onclick="showSection('hari-libur')">
+                    Hari Libur
+                </button>
+                <button class="menu-item" onclick="showSection('rekap-bulanan')">
+                    Rekap Bulanan
+                </button>
+                <button class="menu-item" onclick="showSection('laporan')">
+                    Laporan
+                </button>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboard" class="content-section active">
+                <div class="page-header">
+                    <h2>Dashboard</h2>
+                    <p>Ringkasan kehadiran dan informasi sistem absensi</p>
+                </div>
+                
+                <!-- Info Jam Kerja -->
+                <div class="work-schedule">
+                    JAM KERJA: 07:00 - 15:00 | TOLERANSI KETERLAMBATAN: s/d 07:30 | TERLAMBAT: > 07:30 | HARI LIBUR: MINGGU
+                </div>
+                
+                <!-- Info Tanggal -->
+                <div class="date-info" id="tanggalHariIni"></div>
+                
+                <!-- Ringkasan -->
+                <div class="card">
+                    <h3 class="card-title">Ringkasan Kehadiran Hari Ini</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <div class="summary-number" id="totalHadir">0</div>
+                            <div class="summary-label">Total Hadir</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-number" id="totalIzin">0</div>
+                            <div class="summary-label">Izin</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-number" id="totalSakit">0</div>
+                            <div class="summary-label">Sakit</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-number" id="totalCuti">0</div>
+                            <div class="summary-label">Cuti</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Input Absensi Section -->
+            <div id="input-absensi" class="content-section">
+                <div class="page-header">
+                    <h2>Input Data Absensi</h2>
+                    <p>Form untuk menambahkan data kehadiran karyawan</p>
+                </div>
+                
+                <div class="card">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nama">Nama Lengkap Karyawan</label>
+                            <select id="nama">
+                                <option value="">Pilih Nama Karyawan</option>
+                                <option value="IDA RAHMAWATI">IDA RAHMAWATI</option>
+                                <option value="SITI UMAYAH">SITI UMAYAH</option>
+                                <option value="YUNI RAFIKA SARI">YUNI RAFIKA SARI</option>
+                                <option value="ROIN FAROH">ROIN FAROH</option>
+                                <option value="NUR MUKHOLIDAH WAHYUNI">NUR MUKHOLIDAH WAHYUNI</option>
+                                <option value="SITI HARTATIK">SITI HARTATIK</option>
+                                <option value="ROCHMATIN NAZILAH">ROCHMATIN NAZILAH</option>
+                                <option value="IMA NUR ARFAIDA">IMA NUR ARFAIDA</option>
+                                <option value="FADILLA NUR ROSYIDA">FADILLA NUR ROSYIDA</option>
+                                <option value="KHUSNUL QOTIMAH">KHUSNUL QOTIMAH</option>
+                                <option value="MOH. ZAENAL FATHONI">MOH. ZAENAL FATHONI</option>
+                                <option value="TRIA NURLAILI">TRIA NURLAILI</option>
+                                <option value="KHOIRUNNIKMAH AMANATTILLAH MUTIS">KHOIRUNNIKMAH AMANATTILLAH MUTIS</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="jabatan">Jabatan</label>
+                            <select id="jabatan">
+                                <option value="">Pilih Jabatan</option>
+                                <option value="Kepala Madrasah">Kepala Madrasah</option>
+                                <option value="Guru Kelas">Guru Kelas</option>
+                                <option value="Guru Mapel">Guru Mapel</option>
+                                <option value="Staf">Staf</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Status Kehadiran</label>
+                            <select id="status">
+                                <option value="">Pilih Status Kehadiran</option>
+                                <option value="Hadir">Hadir</option>
+                                <option value="Izin">Izin</option>
+                                <option value="Sakit">Sakit</option>
+                                <option value="Cuti">Cuti</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="jamMasuk">Jam Masuk</label>
+                            <div class="time-input">
+                                <input type="time" id="jamMasuk" value="">
+                                <button type="button" onclick="setWaktuSekarang('jamMasuk')">Sekarang</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="jamPulang">Jam Pulang</label>
+                            <div class="time-input">
+                                <input type="time" id="jamPulang" value="">
+                                <button type="button" onclick="setWaktuSekarang('jamPulang')">Sekarang</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="keterangan">Keterangan</label>
+                            <input type="text" id="keterangan" placeholder="Contoh: Terlambat karena macet">
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 25px;">
+                        <button class="btn btn-primary" onclick="tambahAbsensi()">Tambah Data Absensi</button>
+                        <button class="btn btn-danger" onclick="hapusSemuaData()">Hapus Semua Data</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Absensi Section -->
+            <div id="data-absensi" class="content-section">
+                <div class="page-header">
+                    <h2>Data Absensi Hari Ini</h2>
+                    <p>Daftar kehadiran karyawan untuk hari ini</p>
+                </div>
+                
+                <div class="card">
+                    <table id="tabelAbsensi">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;">No</th>
+                                <th>Nama Karyawan</th>
+                                <th>Jabatan</th>
+                                <th>Jam Masuk</th>
+                                <th>Jam Pulang</th>
+                                <th>Total Jam</th>
+                                <th>Status</th>
+                                <th>Keterlambatan</th>
+                                <th>Durasi</th>
+                                <th>Keterangan</th>
+                                <th style="width: 60px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataAbsensi">
+                            <!-- Data akan muncul di sini -->
+                        </tbody>
+                    </table>
+                    <div id="noDataMessage" class="no-data" style="display: none;">
+                        Belum ada data absensi untuk hari ini
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hari Libur Section -->
+            <div id="hari-libur" class="content-section">
+                <div class="page-header">
+                    <h2>Pengaturan Hari Libur</h2>
+                    <p>Kelola hari libur khusus selain hari Minggu</p>
+                </div>
+                
+                <div class="card">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="tanggalLibur">Tanggal Libur</label>
+                            <input type="date" id="tanggalLibur">
+                        </div>
+                        <div class="form-group">
+                            <label for="keteranganLibur">Keterangan</label>
+                            <input type="text" id="keteranganLibur" placeholder="Contoh: Hari Raya Idul Fitri">
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: end;">
+                            <button class="btn btn-primary" onclick="tambahHariLibur()" style="width: 100%;">Tambah Hari Libur</button>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <h4 style="margin-bottom: 15px; color: #2c3e50;">Daftar Hari Libur</h4>
+                        <div style="background: #e8f5e8; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 0.9em; color: #2d5a2d;">
+                            <strong>Otomatis:</strong> Setiap hari Minggu adalah hari libur
+                        </div>
+                        <div id="daftarHariLibur" style="max-height: 400px; overflow-y: auto;">
+                            <!-- Daftar hari libur akan muncul di sini -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Rekap Bulanan Section -->
+            <div id="rekap-bulanan" class="content-section">
+                <div class="page-header">
+                    <h2>Rekap Absensi Bulanan</h2>
+                    <p>Laporan kehadiran per karyawan dalam satu bulan</p>
+                </div>
+                
+                <div class="card">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bulanRekap">Bulan</label>
+                            <select id="bulanRekap">
+                                <option value="0">Januari</option>
+                                <option value="1">Februari</option>
+                                <option value="2">Maret</option>
+                                <option value="3">April</option>
+                                <option value="4">Mei</option>
+                                <option value="5">Juni</option>
+                                <option value="6">Juli</option>
+                                <option value="7">Agustus</option>
+                                <option value="8">September</option>
+                                <option value="9">Oktober</option>
+                                <option value="10">November</option>
+                                <option value="11">Desember</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tahunRekap">Tahun</label>
+                            <select id="tahunRekap">
+                                <!-- Tahun akan diisi otomatis -->
+                            </select>
+                        </div>
+                        <div class="form-group" style="display: flex; align-items: end;">
+                            <button class="btn btn-primary" onclick="tampilkanRekapBulanan()" style="width: 100%;">Tampilkan Rekap</button>
+                        </div>
+                    </div>
+                    
+                    <div id="rekapBulananContainer" style="display: none;">
+                        <div style="text-align: center; margin: 20px 0;">
+                            <button class="btn btn-success" onclick="exportRekapBulanan()">Export Rekap Bulanan ke Excel</button>
+                        </div>
+                        
+                        <table id="tabelRekapBulanan">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30px;">No</th>
+                                    <th>Nama Karyawan</th>
+                                    <th>Jabatan</th>
+                                    <th>Hadir</th>
+                                    <th>Izin</th>
+                                    <th>Sakit</th>
+                                    <th>Cuti</th>
+                                    <th>Total Hari Kerja</th>
+                                    <th>Persentase Kehadiran</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataRekapBulanan">
+                                <!-- Data rekap bulanan akan muncul di sini -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Laporan Section -->
+            <div id="laporan" class="content-section">
+                <div class="page-header">
+                    <h2>Laporan & Export</h2>
+                    <p>Export data absensi ke Excel dan cetak laporan</p>
+                </div>
+                
+                <div class="card">
+                    <h3 class="card-title">Export Data Harian</h3>
+                    <p style="margin-bottom: 20px; color: #7f8c8d;">Export data absensi hari ini ke format Excel</p>
+                    <div style="text-align: center;">
+                        <button class="btn btn-success" onclick="exportKeExcel()">Export Hari Ini ke Excel</button>
+                        <button class="btn btn-warning" onclick="cetakLaporan()">Cetak Laporan</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data absensi dan hari libur (disimpan di browser)
+        let dataAbsensi = JSON.parse(localStorage.getItem('dataAbsensi')) || [];
+        let hariLibur = JSON.parse(localStorage.getItem('hariLibur')) || [];
+        
+        // Fungsi toggle sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+        
+        // Auto-hide sidebar when clicking outside
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            
+            if (!sidebar.contains(event.target) && !sidebarToggle.contains(event.target)) {
+                sidebar.classList.remove('open');
+            }
+        });
+        
+        // Fungsi show section
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Remove active class from all menu items
+            const menuItems = document.querySelectorAll('.menu-item');
+            menuItems.forEach(item => item.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked menu item
+            event.target.classList.add('active');
+            
+            // Close sidebar after selection
+            document.getElementById('sidebar').classList.remove('open');
+            
+            // Refresh data when showing data-absensi section
+            if (sectionId === 'data-absensi') {
+                tampilkanData();
+            }
+        }
+        
+        // Inisialisasi tahun untuk rekap
+        function initTahunRekap() {
+            const tahunSelect = document.getElementById('tahunRekap');
+            const currentYear = new Date().getFullYear();
+            
+            for (let year = currentYear - 2; year <= currentYear + 1; year++) {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                if (year === currentYear) option.selected = true;
+                tahunSelect.appendChild(option);
+            }
+            
+            // Set bulan saat ini
+            const currentMonth = new Date().getMonth();
+            document.getElementById('bulanRekap').value = currentMonth;
+        }
+        
+        // Tampilkan tanggal hari ini
+        function updateTanggal() {
+            const tanggal = new Date().toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('tanggalHariIni').textContent = tanggal;
+        }
+
+        // Set waktu sekarang
+        function setWaktuSekarang(inputId) {
+            const now = new Date();
+            const timeString = now.toTimeString().slice(0, 5);
+            document.getElementById(inputId).value = timeString;
+        }
+
+        // Fungsi untuk menambah hari libur
+        function tambahHariLibur() {
+            const tanggal = document.getElementById('tanggalLibur').value;
+            const keterangan = document.getElementById('keteranganLibur').value.trim();
+            
+            if (!tanggal || !keterangan) {
+                showAlert('Mohon lengkapi tanggal dan keterangan hari libur!', 'danger');
+                return;
+            }
+            
+            // Cek apakah tanggal sudah ada
+            const sudahAda = hariLibur.some(item => item.tanggal === tanggal);
+            if (sudahAda) {
+                showAlert('Tanggal libur sudah ada!', 'danger');
+                return;
+            }
+            
+            const libur = {
+                id: Date.now(),
+                tanggal: tanggal,
+                keterangan: keterangan
+            };
+            
+            hariLibur.push(libur);
+            localStorage.setItem('hariLibur', JSON.stringify(hariLibur));
+            
+            // Reset form
+            document.getElementById('tanggalLibur').value = '';
+            document.getElementById('keteranganLibur').value = '';
+            
+            tampilkanHariLibur();
+            showAlert('Hari libur berhasil ditambahkan!', 'success');
+        }
+        
+        // Tampilkan daftar hari libur
+        function tampilkanHariLibur() {
+            const container = document.getElementById('daftarHariLibur');
+            container.innerHTML = '';
+            
+            if (hariLibur.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #7f8c8d; font-style: italic; padding: 20px;">Belum ada hari libur khusus yang ditambahkan</div>';
+                return;
+            }
+            
+            // Urutkan berdasarkan tanggal
+            const sortedLibur = hariLibur.sort((a, b) => new Date(a.tanggal) - new Date(b.tanggal));
+            
+            sortedLibur.forEach(item => {
+                const tanggalFormat = new Date(item.tanggal).toLocaleDateString('id-ID', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                
+                const div = document.createElement('div');
+                div.className = 'holiday-item';
+                div.innerHTML = `
+                    <div>
+                        <div class="holiday-date">${tanggalFormat}</div>
+                        <div class="holiday-desc">${item.keterangan}</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="hapusHariLibur(${item.id})" style="padding: 5px 10px; font-size: 0.8em;">
+                        Hapus
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        // Hapus hari libur
+        function hapusHariLibur(id) {
+            if (confirm('Yakin ingin menghapus hari libur ini?')) {
+                hariLibur = hariLibur.filter(item => item.id !== id);
+                localStorage.setItem('hariLibur', JSON.stringify(hariLibur));
+                tampilkanHariLibur();
+                showAlert('Hari libur berhasil dihapus!', 'success');
+            }
+        }
+        
+        // Cek apakah tanggal adalah hari libur
+        function isHariLibur(tanggal) {
+            const date = new Date(tanggal);
+            
+            // Cek hari Minggu (0 = Minggu)
+            if (date.getDay() === 0) {
+                return true;
+            }
+            
+            // Cek hari libur khusus
+            const tanggalStr = date.toISOString().split('T')[0];
+            return hariLibur.some(item => item.tanggal === tanggalStr);
+        }
+        
+        // Hitung hari kerja efektif dalam bulan
+        function hitungHariKerjaEfektif(bulan, tahun) {
+            const tanggalAwal = new Date(tahun, bulan, 1);
+            const tanggalAkhir = new Date(tahun, bulan + 1, 0);
+            let hariKerja = 0;
+            
+            for (let d = new Date(tanggalAwal); d <= tanggalAkhir; d.setDate(d.getDate() + 1)) {
+                if (!isHariLibur(d)) {
+                    hariKerja++;
+                }
+            }
+            
+            return hariKerja;
+        }
+
+        // Hitung selisih jam
+        function hitungSelisihJam(jamMasuk, jamPulang) {
+            if (!jamMasuk || !jamPulang) return '-';
+            
+            const [masukJam, masukMenit] = jamMasuk.split(':').map(Number);
+            const [pulangJam, pulangMenit] = jamPulang.split(':').map(Number);
+            
+            let totalMenitMasuk = masukJam * 60 + masukMenit;
+            let totalMenitPulang = pulangJam * 60 + pulangMenit;
+            
+            // Jika jam pulang lebih kecil dari jam masuk, berarti lewat tengah malam
+            if (totalMenitPulang < totalMenitMasuk) {
+                totalMenitPulang += 24 * 60;
+            }
+            
+            const selisihMenit = totalMenitPulang - totalMenitMasuk;
+            const jam = Math.floor(selisihMenit / 60);
+            const menit = selisihMenit % 60;
+            
+            return `${jam}j ${menit}m`;
+        }
+
+        // Fungsi hitung status keterlambatan
+        function hitungStatusKeterlambatan(jamMasuk) {
+            if (!jamMasuk) return { status: '-', durasi: '-', kategori: 'tidak-hadir' };
+            
+            const jamStandar = '07:00';
+            const batasToleransi = '07:30';
+            
+            // Konversi ke menit untuk perhitungan
+            const [jamMasukHour, jamMasukMin] = jamMasuk.split(':').map(Number);
+            const [jamStandarHour, jamStandarMin] = jamStandar.split(':').map(Number);
+            const [batasHour, batasMin] = batasToleransi.split(':').map(Number);
+            
+            const menitMasuk = jamMasukHour * 60 + jamMasukMin;
+            const menitStandar = jamStandarHour * 60 + jamStandarMin;
+            const menitBatas = batasHour * 60 + batasMin;
+            
+            if (menitMasuk <= menitStandar) {
+                return { 
+                    status: 'Tepat Waktu', 
+                    durasi: '-', 
+                    kategori: 'tepat-waktu' 
+                };
+            } else if (menitMasuk <= menitBatas) {
+                const selisihMenit = menitMasuk - menitStandar;
+                const jam = Math.floor(selisihMenit / 60);
+                const menit = selisihMenit % 60;
+                const durasiText = jam > 0 ? `${jam}j ${menit}m` : `${menit}m`;
+                return { 
+                    status: 'Tepat Waktu', 
+                    durasi: durasiText, 
+                    kategori: 'tepat-waktu' 
+                };
+            } else {
+                const selisihMenit = menitMasuk - menitStandar;
+                const jam = Math.floor(selisihMenit / 60);
+                const menit = selisihMenit % 60;
+                const durasiText = jam > 0 ? `${jam}j ${menit}m` : `${menit}m`;
+                return { 
+                    status: 'Terlambat', 
+                    durasi: durasiText, 
+                    kategori: 'terlambat' 
+                };
+            }
+        }
+
+        // Fungsi tambah absensi
+        function tambahAbsensi() {
+            const nama = document.getElementById('nama').value.trim();
+            const jabatan = document.getElementById('jabatan').value;
+            const status = document.getElementById('status').value;
+            const jamMasuk = document.getElementById('jamMasuk').value;
+            const jamPulang = document.getElementById('jamPulang').value;
+            const keterangan = document.getElementById('keterangan').value.trim();
+
+            if (!nama || !jabatan || !status) {
+                showAlert('Mohon lengkapi nama karyawan, jabatan, dan status kehadiran!', 'danger');
+                return;
+            }
+
+            // Validasi jam masuk untuk status hadir
+            if (status === 'Hadir' && !jamMasuk) {
+                showAlert('Jam masuk wajib diisi untuk status hadir!', 'danger');
+                return;
+            }
+
+            const tanggal = new Date().toLocaleDateString('id-ID');
+            const totalJam = hitungSelisihJam(jamMasuk, jamPulang);
+            
+            // Hitung status keterlambatan
+            const statusKeterlambatan = status === 'Hadir' ? hitungStatusKeterlambatan(jamMasuk) : 
+                { status: '-', durasi: '-', kategori: 'tidak-hadir' };
+
+            const absensi = {
+                id: Date.now(),
+                nama: nama,
+                jabatan: jabatan,
+                status: status,
+                jamMasuk: jamMasuk || '-',
+                jamPulang: jamPulang || '-',
+                totalJam: totalJam,
+                tanggal: tanggal,
+                keterangan: keterangan || '-',
+                statusKeterlambatan: statusKeterlambatan.status,
+                durasiTerlambat: statusKeterlambatan.durasi,
+                kategoriKeterlambatan: statusKeterlambatan.kategori
+            };
+
+            dataAbsensi.push(absensi);
+            localStorage.setItem('dataAbsensi', JSON.stringify(dataAbsensi));
+
+            // Reset form
+            document.getElementById('nama').value = '';
+            document.getElementById('jabatan').value = '';
+            document.getElementById('status').value = '';
+            document.getElementById('jamMasuk').value = '';
+            document.getElementById('jamPulang').value = '';
+            document.getElementById('keterangan').value = '';
+
+            tampilkanData();
+            updateRingkasan();
+            showAlert('Data absensi berhasil ditambahkan!', 'success');
+        }
+
+        // Fungsi tampilkan alert
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            
+            const mainContent = document.querySelector('.main-content');
+            const activeSection = document.querySelector('.content-section.active');
+            activeSection.insertBefore(alertDiv, activeSection.children[1]);
+            
+            setTimeout(() => alertDiv.remove(), 4000);
+        }
+
+        // Fungsi tampilkan data
+        function tampilkanData() {
+            const tbody = document.getElementById('dataAbsensi');
+            const noDataMessage = document.getElementById('noDataMessage');
+            const hariIni = new Date().toLocaleDateString('id-ID');
+            const dataHariIni = dataAbsensi.filter(item => item.tanggal === hariIni);
+
+            tbody.innerHTML = '';
+
+            if (dataHariIni.length === 0) {
+                noDataMessage.style.display = 'block';
+                document.getElementById('tabelAbsensi').style.display = 'none';
+            } else {
+                noDataMessage.style.display = 'none';
+                document.getElementById('tabelAbsensi').style.display = 'table';
+
+                dataHariIni.forEach((item, index) => {
+                    const row = tbody.insertRow();
+                    
+                    let statusClass = '';
+                    switch(item.status) {
+                        case 'Hadir':
+                            statusClass = 'status-hadir';
+                            break;
+                        case 'Izin':
+                            statusClass = 'status-izin';
+                            break;
+                        case 'Sakit':
+                            statusClass = 'status-sakit';
+                            break;
+                        case 'Cuti':
+                            statusClass = 'status-terlambat';
+                            break;
+                    }
+
+                    let keterlambatanClass = '';
+                    switch(item.kategoriKeterlambatan) {
+                        case 'tepat-waktu':
+                            keterlambatanClass = 'tepat-waktu';
+                            break;
+                        case 'tepat-waktu':
+                            keterlambatanClass = 'tepat-waktu';
+                            break;
+                        case 'terlambat':
+                            keterlambatanClass = 'terlambat';
+                            break;
+                        default:
+                            keterlambatanClass = 'status-sakit';
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td><strong>${item.nama}</strong></td>
+                        <td>${item.jabatan}</td>
+                        <td class="time-display">${item.jamMasuk}</td>
+                        <td class="time-display">${item.jamPulang === '-' ? '<span style="color: #e74c3c; font-style: italic;">Belum Pulang</span>' : item.jamPulang}</td>
+                        <td class="work-hours">${item.totalJam}</td>
+                        <td><span class="status-badge ${statusClass}">${item.status}</span></td>
+                        <td><span class="keterlambatan-badge ${keterlambatanClass}">${item.statusKeterlambatan}</span></td>
+                        <td class="duration-display">${item.durasiTerlambat}</td>
+                        <td>${item.keterangan}</td>
+                        <td>
+                            ${item.jamPulang === '-' && item.status === 'Hadir' ? 
+                                `<button class="btn btn-success" onclick="updateJamPulang(${item.id})" style="padding: 3px 6px; font-size: 0.65em; margin-bottom: 2px;">
+                                    Pulang
+                                </button><br>` : ''
+                            }
+                            <button class="btn btn-danger" onclick="hapusData(${item.id})" style="padding: 3px 6px; font-size: 0.65em;">
+                                Hapus
+                            </button>
+                        </td>
+                    `;
+                });
+            }
+
+            updateRingkasan(dataHariIni);
+        }
+
+        // Fungsi update ringkasan
+        function updateRingkasan(data = null) {
+            if (!data) {
+                const hariIni = new Date().toLocaleDateString('id-ID');
+                data = dataAbsensi.filter(item => item.tanggal === hariIni);
+            }
+            
+            const totalHadir = data.filter(item => item.status === 'Hadir').length;
+            const totalIzin = data.filter(item => item.status === 'Izin').length;
+            const totalSakit = data.filter(item => item.status === 'Sakit').length;
+            const totalCuti = data.filter(item => item.status === 'Cuti').length;
+
+            // Update dengan pengecekan elemen
+            const elTotalHadir = document.getElementById('totalHadir');
+            const elTotalIzin = document.getElementById('totalIzin');
+            const elTotalSakit = document.getElementById('totalSakit');
+            const elTotalCuti = document.getElementById('totalCuti');
+
+            if (elTotalHadir) elTotalHadir.textContent = totalHadir;
+            if (elTotalIzin) elTotalIzin.textContent = totalIzin;
+            if (elTotalSakit) elTotalSakit.textContent = totalSakit;
+            if (elTotalCuti) elTotalCuti.textContent = totalCuti;
+        }
+
+        // Fungsi tampilkan rekap bulanan
+        function tampilkanRekapBulanan() {
+            const bulan = parseInt(document.getElementById('bulanRekap').value);
+            const tahun = parseInt(document.getElementById('tahunRekap').value);
+            
+            const namaBulan = [
+                'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+            ];
+            
+            // Filter data berdasarkan bulan dan tahun
+            const dataBulan = dataAbsensi.filter(item => {
+                const tanggalItem = new Date(item.tanggal.split('/').reverse().join('-'));
+                return tanggalItem.getMonth() === bulan && tanggalItem.getFullYear() === tahun;
+            });
+            
+            // Hitung hari kerja efektif
+            const hariKerjaEfektif = hitungHariKerjaEfektif(bulan, tahun);
+            
+            // Dapatkan daftar semua karyawan
+            const daftarKaryawan = [
+                'IDA RAHMAWATI', 'SITI UMAYAH', 'YUNI RAFIKA SARI', 'ROIN FAROH',
+                'NUR MUKHOLIDAH WAHYUNI', 'SITI HARTATIK', 'ROCHMATIN NAZILAH',
+                'IMA NUR ARFAIDA', 'FADILLA NUR ROSYIDA', 'KHUSNUL QOTIMAH',
+                'MOH. ZAENAL FATHONI', 'TRIA NURLAILI', 'KHOIRUNNIKMAH AMANATTILLAH MUTIS'
+            ];
+            
+            const tbody = document.getElementById('dataRekapBulanan');
+            tbody.innerHTML = '';
+            
+            daftarKaryawan.forEach((nama, index) => {
+                const dataKaryawan = dataBulan.filter(item => item.nama === nama);
+                
+                const hadir = dataKaryawan.filter(item => item.status === 'Hadir').length;
+                const izin = dataKaryawan.filter(item => item.status === 'Izin').length;
+                const sakit = dataKaryawan.filter(item => item.status === 'Sakit').length;
+                const cuti = dataKaryawan.filter(item => item.status === 'Cuti').length;
+                
+                // Hitung persentase kehadiran
+                const totalKehadiran = hadir + izin + sakit + cuti;
+                const persentase = totalKehadiran > 0 ? Math.round((hadir / hariKerjaEfektif) * 100) : 0;
+                
+                let persentaseClass = 'percentage-low';
+                if (persentase >= 80) persentaseClass = 'percentage-high';
+                else if (persentase >= 60) persentaseClass = 'percentage-medium';
+                
+                // Dapatkan jabatan dari data terakhir karyawan
+                const jabatan = dataKaryawan.length > 0 ? dataKaryawan[dataKaryawan.length - 1].jabatan : '-';
+                
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><strong>${nama}</strong></td>
+                    <td>${jabatan}</td>
+                    <td>${hadir}</td>
+                    <td>${izin}</td>
+                    <td>${sakit}</td>
+                    <td>${cuti}</td>
+                    <td>${hariKerjaEfektif}</td>
+                    <td><span class="percentage-badge ${persentaseClass}">${persentase}%</span></td>
+                `;
+            });
+            
+            document.getElementById('rekapBulananContainer').style.display = 'block';
+            showAlert(`Rekap bulan ${namaBulan[bulan]} ${tahun} berhasil ditampilkan!`, 'success');
+        }
+
+        // Fungsi update jam pulang
+        function updateJamPulang(id) {
+            const now = new Date();
+            const jamPulangSekarang = now.toTimeString().slice(0, 5);
+            
+            if (confirm(`Konfirmasi jam pulang sekarang (${jamPulangSekarang})?`)) {
+                const index = dataAbsensi.findIndex(item => item.id === id);
+                if (index !== -1) {
+                    dataAbsensi[index].jamPulang = jamPulangSekarang;
+                    dataAbsensi[index].totalJam = hitungSelisihJam(dataAbsensi[index].jamMasuk, jamPulangSekarang);
+                    
+                    localStorage.setItem('dataAbsensi', JSON.stringify(dataAbsensi));
+                    tampilkanData();
+                    showAlert('Jam pulang berhasil disimpan!', 'success');
+                }
+            }
+        }
+
+        // Fungsi hapus data
+        function hapusData(id) {
+            if (confirm('Yakin ingin menghapus data ini?')) {
+                dataAbsensi = dataAbsensi.filter(item => item.id !== id);
+                localStorage.setItem('dataAbsensi', JSON.stringify(dataAbsensi));
+                tampilkanData();
+                updateRingkasan();
+                showAlert('Data berhasil dihapus!', 'success');
+            }
+        }
+
+        // Fungsi hapus semua data
+        function hapusSemuaData() {
+            if (confirm('Yakin ingin menghapus SEMUA data absensi?')) {
+                dataAbsensi = [];
+                localStorage.removeItem('dataAbsensi');
+                tampilkanData();
+                updateRingkasan();
+                showAlert('Semua data berhasil dihapus!', 'success');
+            }
+        }
+
+        // Fungsi export rekap bulanan ke Excel
+        function exportRekapBulanan() {
+            const bulan = parseInt(document.getElementById('bulanRekap').value);
+            const tahun = parseInt(document.getElementById('tahunRekap').value);
+            
+            const namaBulan = [
+                'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+            ];
+            
+            const hariKerjaEfektif = hitungHariKerjaEfektif(bulan, tahun);
+            
+            let excelContent = `
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        table { border-collapse: collapse; width: 100%; }
+                        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+                        .header { text-align: center; font-weight: bold; font-size: 16px; }
+                        .table-header { background-color: #4472C4; color: white; font-weight: bold; text-align: center; }
+                    </style>
+                </head>
+                <body>
+                    <table>
+                        <tr>
+                            <td colspan="9" class="header">MADRASAH IBTIDAIYAH RIYADLATUL UQUL NGADILUWIH</td>
+                        </tr>
+                        <tr>
+                            <td colspan="9" class="header">REKAP ABSENSI BULANAN</td>
+                        </tr>
+                        <tr>
+                            <td colspan="9" class="header">${namaBulan[bulan]} ${tahun}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="9" class="header">Total Hari Kerja Efektif: ${hariKerjaEfektif} hari</td>
+                        </tr>
+                        <tr><td colspan="9">&nbsp;</td></tr>
+                        <tr>
+                            <td class="table-header">No</td>
+                            <td class="table-header">Nama Karyawan</td>
+                            <td class="table-header">Jabatan</td>
+                            <td class="table-header">Hadir</td>
+                            <td class="table-header">Izin</td>
+                            <td class="table-header">Sakit</td>
+                            <td class="table-header">Cuti</td>
+                            <td class="table-header">Total Hari Kerja</td>
+                            <td class="table-header">Persentase Kehadiran</td>
+                        </tr>
+            `;
+            
+            const tbody = document.getElementById('dataRekapBulanan');
+            const rows = tbody.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                excelContent += '<tr>';
+                for (let j = 0; j < cells.length; j++) {
+                    excelContent += `<td>${cells[j].textContent}</td>`;
+                }
+                excelContent += '</tr>';
+            }
+            
+            excelContent += `
+                        <tr><td colspan="9">&nbsp;</td></tr>
+                        <tr>
+                            <td colspan="6"></td>
+                            <td colspan="3">Ngadiluwih, ${new Date().toLocaleDateString('id-ID')}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="6"></td>
+                            <td colspan="3">Kepala Madrasah</td>
+                        </tr>
+                        <tr><td colspan="9">&nbsp;</td></tr>
+                        <tr><td colspan="9">&nbsp;</td></tr>
+                        <tr>
+                            <td colspan="6"></td>
+                            <td colspan="3">(_____________________)</td>
+                        </tr>
+                    </table>
+                </body>
+                </html>
+            `;
+            
+            const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Rekap_Absensi_${namaBulan[bulan]}_${tahun}.xls`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            showAlert('File rekap bulanan berhasil didownload!', 'success');
+        }
+
+        // Fungsi export ke Excel
+        function exportKeExcel() {
+            const hariIni = new Date().toLocaleDateString('id-ID');
+            const dataHariIni = dataAbsensi.filter(item => item.tanggal === hariIni);
+
+            if (dataHariIni.length === 0) {
+                showAlert('Tidak ada data untuk diekspor!', 'danger');
+                return;
+            }
+
+            const tanggalFile = new Date().toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            let excelContent = `
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        table { border-collapse: collapse; width: 100%; }
+                        th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+                        .header { text-align: center; font-weight: bold; font-size: 16px; }
+                        .table-header { background-color: #4472C4; color: white; font-weight: bold; text-align: center; }
+                    </style>
+                </head>
+                <body>
+                    <table>
+                        <tr>
+                            <td colspan="10" class="header">MADRASAH IBTIDAIYAH RIYADLATUL UQUL NGADILUWIH</td>
+                        </tr>
+                        <tr>
+                            <td colspan="10" class="header">LAPORAN ABSENSI HARIAN</td>
+                        </tr>
+                        <tr>
+                            <td colspan="10" class="header">${tanggalFile}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="10" class="header">JAM KERJA: 07:00-15:00 | TOLERANSI: s/d 07:30</td>
+                        </tr>
+                        <tr><td colspan="10">&nbsp;</td></tr>
+                        <tr>
+                            <td class="table-header">No</td>
+                            <td class="table-header">Nama Karyawan</td>
+                            <td class="table-header">Jabatan</td>
+                            <td class="table-header">Jam Masuk</td>
+                            <td class="table-header">Jam Pulang</td>
+                            <td class="table-header">Total Jam</td>
+                            <td class="table-header">Status</td>
+                            <td class="table-header">Keterlambatan</td>
+                            <td class="table-header">Durasi</td>
+                            <td class="table-header">Keterangan</td>
+                        </tr>
+            `;
+
+            dataHariIni.forEach((item, index) => {
+                excelContent += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.nama}</td>
+                        <td>${item.jabatan}</td>
+                        <td>${item.jamMasuk}</td>
+                        <td>${item.jamPulang}</td>
+                        <td>${item.totalJam}</td>
+                        <td>${item.status}</td>
+                        <td>${item.statusKeterlambatan}</td>
+                        <td>${item.durasiTerlambat}</td>
+                        <td>${item.keterangan}</td>
+                    </tr>
+                `;
+            });
+
+            const totalHadir = dataHariIni.filter(item => item.status === 'Hadir').length;
+            const totalIzin = dataHariIni.filter(item => item.status === 'Izin').length;
+            const totalSakit = dataHariIni.filter(item => item.status === 'Sakit').length;
+            const totalCuti = dataHariIni.filter(item => item.status === 'Cuti').length;
+
+            excelContent += `
+                        <tr><td colspan="10">&nbsp;</td></tr>
+                        <tr>
+                            <td colspan="5" style="font-weight: bold;">RINGKASAN KEHADIRAN:</td>
+                            <td colspan="5"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">Total Hadir</td>
+                            <td>${totalHadir} orang</td>
+                            <td colspan="5"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">Total Izin</td>
+                            <td>${totalIzin} orang</td>
+                            <td colspan="5"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">Total Sakit</td>
+                            <td>${totalSakit} orang</td>
+                            <td colspan="5"></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4">Total Cuti</td>
+                            <td>${totalCuti} orang</td>
+                            <td colspan="5"></td>
+                        </tr>
+                        <tr><td colspan="10">&nbsp;</td></tr>
+                        <tr>
+                            <td colspan="7"></td>
+                            <td colspan="3">Ngadiluwih, ${hariIni}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="7"></td>
+                            <td colspan="3">Kepala Madrasah</td>
+                        </tr>
+                        <tr><td colspan="10">&nbsp;</td></tr>
+                        <tr><td colspan="10">&nbsp;</td></tr>
+                        <tr>
+                            <td colspan="7"></td>
+                            <td colspan="3">(_____________________)</td>
+                        </tr>
+                    </table>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Absensi_${hariIni.replace(/\//g, '-')}.xls`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            showAlert('File Excel berhasil didownload!', 'success');
+        }
+
+        // Fungsi cetak laporan
+        function cetakLaporan() {
+            window.print();
+        }
+
+        // Fungsi toggle tema
+        function toggleTheme() {
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (body.classList.contains('dark-theme')) {
+                // Switch to light theme
+                body.classList.remove('dark-theme');
+                themeToggle.textContent = 'Tema Gelap';
+                localStorage.setItem('theme', 'light');
+            } else {
+                // Switch to dark theme
+                body.classList.add('dark-theme');
+                themeToggle.textContent = 'Tema Terang';
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+        
+        // Load saved theme
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const body = document.body;
+            const themeToggle = document.getElementById('themeToggle');
+            
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-theme');
+                themeToggle.textContent = 'Tema Terang';
+            } else {
+                body.classList.remove('dark-theme');
+                themeToggle.textContent = 'Tema Gelap';
+            }
+        }
+
+        // Inisialisasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTheme();
+            updateTanggal();
+            initTahunRekap();
+            tampilkanData();
+            tampilkanHariLibur();
+            updateRingkasan();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9906d6ce63a9fe8a',t:'MTc2MDc3Nzk2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
